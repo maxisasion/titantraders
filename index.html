@@ -220,6 +220,17 @@
             box-shadow: 0 0 5px #ff3333, 0 0 10px #ff3333;
         }
 
+        /* Remember Me Checkbox */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .remember-me input {
+            margin-right: 10px;
+        }
+
         /* Floating Mode */
         .floating-mode {
             text-align: center;
@@ -365,6 +376,31 @@
             z-index: 10001;
             display: none;
         }
+
+        /* Setup Instructions */
+        .setup-instructions {
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid var(--dark-blue);
+            display: none;
+        }
+
+        .setup-instructions h3 {
+            color: var(--neon-blue);
+            margin-bottom: 10px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .setup-instructions ol {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions li {
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -408,6 +444,11 @@
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" class="form-control" placeholder="Your trading password">
+                    </div>
+
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember-me">
+                        <label for="remember-me">Keep me logged in</label>
                     </div>
 
                     <button class="btn btn-start" onclick="connectToBroker()">
@@ -460,6 +501,21 @@
                         <span style="margin-left: 10px;">On</span>
                     </div>
                 </div>
+
+                <div class="setup-instructions" id="setup-instructions">
+                    <h3><i class="fas fa-info-circle"></i> Enable Display Over Other Apps</h3>
+                    <p>To keep the trading stats visible even when using other apps:</p>
+                    <ol>
+                        <li>Go to your phone's Settings</li>
+                        <li>Find "Apps" or "Application Manager"</li>
+                        <li>Select "Titan Traders"</li>
+                        <li>Tap "Display over other apps" or "Draw over other apps"</li>
+                        <li>Enable the permission</li>
+                    </ol>
+                    <button class="btn btn-start" onclick="hideInstructions()">
+                        <i class="fas fa-check"></i> I've enabled this setting
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -508,6 +564,12 @@
         let maxTrades = 5;
         let openTrades = 0;
         let floatingWindowVisible = false;
+        let tradingInterval;
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+        });
 
         // Make the floating window draggable
         dragElement(document.getElementById("floating-window"));
@@ -566,6 +628,7 @@
             const server = document.getElementById('broker-server').value;
             const account = document.getElementById('account-number').value;
             const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
             
             if (!server || !account || !password) {
                 showNotification('Please enter all broker credentials');
@@ -573,6 +636,13 @@
             }
             
             showNotification(`Connecting to ${platform.toUpperCase()} on ${server}...`);
+            
+            // Save login info if "Remember Me" is checked
+            if (rememberMe) {
+                saveLoginInfo(securityCode, platform, server, account, password);
+            } else {
+                clearLoginInfo();
+            }
             
             // Simulate connection delay
             setTimeout(() => {
@@ -583,6 +653,50 @@
                 document.getElementById('trading-section').style.display = 'block';
                 document.querySelector('.floating-mode').style.display = 'block';
             }, 2000);
+        }
+
+        function saveLoginInfo(securityCode, platform, server, account, password) {
+            // In a real app, you would use secure storage methods
+            localStorage.setItem('tt_securityCode', securityCode);
+            localStorage.setItem('tt_platform', platform);
+            localStorage.setItem('tt_server', server);
+            localStorage.setItem('tt_account', account);
+            localStorage.setItem('tt_password', password);
+            localStorage.setItem('tt_rememberMe', 'true');
+        }
+
+        function clearLoginInfo() {
+            localStorage.removeItem('tt_securityCode');
+            localStorage.removeItem('tt_platform');
+            localStorage.removeItem('tt_server');
+            localStorage.removeItem('tt_account');
+            localStorage.removeItem('tt_password');
+            localStorage.removeItem('tt_rememberMe');
+        }
+
+        function checkLoginStatus() {
+            const rememberMe = localStorage.getItem('tt_rememberMe');
+            
+            if (rememberMe === 'true') {
+                const securityCode = localStorage.getItem('tt_securityCode');
+                const platform = localStorage.getItem('tt_platform');
+                const server = localStorage.getItem('tt_server');
+                const account = localStorage.getItem('tt_account');
+                const password = localStorage.getItem('tt_password');
+                
+                if (securityCode && platform && server && account && password) {
+                    // Auto-fill the form
+                    document.getElementById('security-code').value = securityCode;
+                    document.getElementById('platform').value = platform;
+                    document.getElementById('broker-server').value = server;
+                    document.getElementById('account-number').value = account;
+                    document.getElementById('password').value = password;
+                    document.getElementById('remember-me').checked = true;
+                    
+                    // Automatically connect
+                    connectToBroker();
+                }
+            }
         }
 
         function startTrading() {
@@ -618,19 +732,28 @@
             
             showNotification(`Started trading ${selectedPair} with lot size ${lotSize} (max ${maxTrades} trades)`);
             
+            // Show setup instructions for overlay
+            document.getElementById('setup-instructions').style.display = 'block';
+            
             // Check if floating mode is enabled
             if (document.getElementById('floating-toggle').checked) {
                 document.getElementById('floating-window').style.display = 'block';
                 floatingWindowVisible = true;
             }
             
-            // Simulate trading updates
-            simulateTrading();
+            // Start trading simulation
+            if (tradingInterval) clearInterval(tradingInterval);
+            tradingInterval = setInterval(simulateTrading, 2000);
         }
 
         function stopTrading() {
             isTrading = false;
             showNotification('Trading stopped');
+            
+            if (tradingInterval) {
+                clearInterval(tradingInterval);
+                tradingInterval = null;
+            }
             
             if (floatingWindowVisible) {
                 document.getElementById('floating-window').style.display = 'none';
@@ -642,6 +765,10 @@
             document.getElementById('floating-window').style.display = 'none';
             document.getElementById('floating-toggle').checked = false;
             floatingWindowVisible = false;
+        }
+
+        function hideInstructions() {
+            document.getElementById('setup-instructions').style.display = 'none';
         }
 
         function showNotification(message) {
@@ -671,9 +798,6 @@
                 openTrades = newTrades;
                 document.getElementById('floating-trades').textContent = `${openTrades}/${maxTrades}`;
             }
-            
-            // Continue simulation
-            setTimeout(simulateTrading, 2000);
         }
 
         // Initialize the floating toggle
@@ -681,6 +805,7 @@
             if (this.checked && isTrading) {
                 document.getElementById('floating-window').style.display = 'block';
                 floatingWindowVisible = true;
+                document.getElementById('setup-instructions').style.display = 'block';
             } else if (!this.checked) {
                 document.getElementById('floating-window').style.display = 'none';
                 floatingWindowVisible = false;
