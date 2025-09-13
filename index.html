@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titan Traders Trading Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #0066cc;
+            --neon-blue: #0088ff;
+            --dark-blue: #004480;
+            --light-blue: #d4e4f7;
+            --dark-bg: #001133;
+            --darker-bg: #000822;
+            --light-bg: #0a142a;
+            --text-dark: #e0e0e0;
+            --text-light: #ffffff;
+            --accent: #ffc107;
+            --neon-glow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue), 0 0 15px var(--neon-blue);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--darker-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0, 136, 255, 0.4);
+            border: 2px solid var(--dark-blue);
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(to right, var(--dark-bg), var(--darker-bg));
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--dark-blue);
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon {
+            color: var(--neon-blue);
+            margin-right: 10px;
+            font-size: 24px;
+        }
+
+        .logo span {
+            color: var(--neon-blue);
+        }
+
+        /* Content Area */
+        .content {
+            padding: 25px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px rgba(0, 136, 255, 0.5);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+        }
+
+        /* Login Form */
+        .login-form {
+            background: linear-gradient(to bottom, var(--dark-bg), var(--darker-bg));
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--dark-blue);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--dark-blue);
+            background-color: var(--light-bg);
+            color: var(--text-light);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+        }
+
+        select.form-control {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230088ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
+
+        /* Trading Panel */
+        .trading-panel {
+            background: linear-gradient(to bottom, var(--dark-bg), var(--darker-bg));
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--dark-blue);
+            display: none;
+        }
+
+        .lot-size, .trade-count {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .lot-size label, .trade-count label {
+            margin-right: 15px;
+            font-size: 16px;
+            color: var(--text-light);
+            min-width: 120px;
+        }
+
+        .lot-input, .trade-input {
+            width: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--dark-blue);
+            background-color: var(--light-bg);
+            color: var(--text-light);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+        }
+
+        /* Control Buttons */
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            border: none;
+        }
+
+        .btn i {
+            margin-right: 10px;
+        }
+
+        .btn-start {
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+        }
+
+        .btn-start:hover {
+            background-color: var(--primary-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--neon-glow);
+        }
+
+        .btn-stop {
+            background-color: #ff3333;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background-color: #ff5555;
+            transform: translateY(-2px);
+            box-shadow: 0 0 5px #ff3333, 0 0 10px #ff3333;
+        }
+
+        /* Floating Mode */
+        .floating-mode {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            border: 1px solid var(--dark-blue);
+            display: none;
+        }
+
+        .floating-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--neon-blue);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Floating Window */
+        .floating-window {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            width: 300px;
+            background: var(--darker-bg);
+            border: 2px solid var(--dark-blue);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 136, 255, 0.4);
+            z-index: 10000;
+            display: none;
+        }
+
+        .floating-header {
+            background: linear-gradient(to right, var(--dark-bg), var(--darker-bg));
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--dark-blue);
+            cursor: move;
+        }
+
+        .floating-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            font-size: 16px;
+        }
+
+        .floating-close {
+            color: var(--text-dark);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .floating-content {
+            padding: 15px;
+        }
+
+        .floating-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .floating-stat {
+            background-color: var(--light-bg);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid var(--dark-blue);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: var(--neon-blue);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-dark);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot logo-icon"></i>
+                TITAN<span>TRADERS</span> TRADING BOT
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Login Section (Initially Visible) -->
+            <div id="login-section">
+                <h2 class="section-title"><i class="fas fa-sign-in-alt"></i> Broker Login</h2>
+                
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="security-code">Security Code</label>
+                        <input type="text" id="security-code" class="form-control" placeholder="Enter your security code">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="platform">Trading Platform</label>
+                        <select id="platform" class="form-control">
+                            <option value="mt4">MetaTrader 4</option>
+                            <option value="mt5">MetaTrader 5</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="broker-server">Broker Server</label>
+                        <input type="text" id="broker-server" class="form-control" placeholder="e.g., XM-Global-MT5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="account-number">Account Number</label>
+                        <input type="text" id="account-number" class="form-control" placeholder="Your account number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Your trading password">
+                    </div>
+
+                    <button class="btn btn-start" onclick="connectToBroker()">
+                        <i class="fas fa-plug"></i> Connect to Broker
+                    </button>
+                </div>
+            </div>
+
+            <!-- Trading Panel (Initially Hidden) -->
+            <div id="trading-section" class="trading-panel">
+                <h2 class="section-title"><i class="fas fa-chart-line"></i> Trading Settings</h2>
+                
+                <div class="form-group">
+                    <label for="currency-pair">Currency Pair</label>
+                    <input type="text" id="currency-pair" class="form-control" placeholder="e.g., EUR/USD" value="EUR/USD">
+                </div>
+
+                <div class="form-group">
+                    <div class="lot-size">
+                        <label for="lot-size">Lot Size:</label>
+                        <input type="number" id="lot-size" class="lot-input" value="0.1" min="0.01" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="trade-count">
+                        <label for="trade-count">Number of Trades:</label>
+                        <input type="number" id="trade-count" class="trade-input" value="5" min="1" step="1">
+                    </div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="btn btn-start" onclick="startTrading()">
+                        <i class="fas fa-play"></i> Start Trading
+                    </button>
+                    <button class="btn btn-stop" onclick="stopTrading()">
+                        <i class="fas fa-stop"></i> Stop Trading
+                    </button>
+                </div>
+
+                <div class="floating-mode">
+                    <h3>Always-on-Top Mode</h3>
+                    <p>Keep the trading stats visible over other applications</p>
+                    <div class="floating-toggle">
+                        <span style="margin-right: 10px;">Off</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="floating-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span style="margin-left: 10px;">On</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Window -->
+    <div class="floating-window" id="floating-window">
+        <div class="floating-header" id="floating-header">
+            <div class="floating-title">Titan Traders Stats</div>
+            <div class="floating-close" onclick="closeFloatingWindow()"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="floating-content">
+            <div class="floating-stats">
+                <div class="floating-stat">
+                    <div class="stat-value" id="floating-pair">EUR/USD</div>
+                    <div class="stat-label">Trading Pair</div>
+                </div>
+                <div class="floating-stat">
+                    <div class="stat-value" id="floating-lot">0.1</div>
+                    <div class="stat-label">Lot Size</div>
+                </div>
+                <div class="floating-stat">
+                    <div class="stat-value" id="floating-profit">+0.0%</div>
+                    <div class="stat-label">Profit/Loss</div>
+                </div>
+                <div class="floating-stat">
+                    <div class="stat-value" id="floating-trades">0/5</div>
+                    <div class="stat-label">Open/Max Trades</div>
+                </div>
+            </div>
+            <button class="btn btn-stop" style="width: 100%;" onclick="stopTrading()">
+                <i class="fas fa-stop"></i> Stop Trading
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        Notification message
+    </div>
+
+    <script>
+        // Variables to track trading state
+        let isTrading = false;
+        let selectedPair = 'EUR/USD';
+        let lotSize = 0.1;
+        let maxTrades = 5;
+        let openTrades = 0;
+        let floatingWindowVisible = false;
+
+        // Make the floating window draggable
+        dragElement(document.getElementById("floating-window"));
+
+        function dragElement(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const header = document.getElementById("floating-header");
+            
+            header.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // get the mouse cursor position at startup
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                // call a function whenever the cursor moves
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // calculate the new cursor position
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // set the element's new position
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                // stop moving when mouse button is released
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        function validateSecurityCode(code) {
+            const pattern = /^TT-[a-zA-Z0-9]{8}$/;
+            return pattern.test(code);
+        }
+
+        function connectToBroker() {
+            // Validate security code first
+            const securityCode = document.getElementById('security-code').value;
+            if (!validateSecurityCode(securityCode)) {
+                showNotification('Please enter a valid security code');
+                return;
+            }
+            
+            const platform = document.getElementById('platform').value;
+            const server = document.getElementById('broker-server').value;
+            const account = document.getElementById('account-number').value;
+            const password = document.getElementById('password').value;
+            
+            if (!server || !account || !password) {
+                showNotification('Please enter all broker credentials');
+                return;
+            }
+            
+            showNotification(`Connecting to ${platform.toUpperCase()} on ${server}...`);
+            
+            // Simulate connection delay
+            setTimeout(() => {
+                showNotification(`Successfully connected to ${server} (${platform.toUpperCase()})`);
+                
+                // Hide login section and show trading section
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('trading-section').style.display = 'block';
+                document.querySelector('.floating-mode').style.display = 'block';
+            }, 2000);
+        }
+
+        function startTrading() {
+            // Get the currency pair
+            selectedPair = document.getElementById('currency-pair').value.toUpperCase();
+            
+            if (!selectedPair || selectedPair.length < 6) {
+                showNotification('Please enter a valid currency pair (e.g., EUR/USD)');
+                return;
+            }
+            
+            // Get the current lot size
+            lotSize = parseFloat(document.getElementById('lot-size').value);
+            
+            if (isNaN(lotSize) || lotSize <= 0) {
+                showNotification('Please enter a valid lot size');
+                return;
+            }
+            
+            // Get the number of trades
+            maxTrades = parseInt(document.getElementById('trade-count').value);
+            
+            if (isNaN(maxTrades) || maxTrades <= 0) {
+                showNotification('Please enter a valid number of trades');
+                return;
+            }
+            
+            isTrading = true;
+            openTrades = 0;
+            document.getElementById('floating-pair').textContent = selectedPair;
+            document.getElementById('floating-lot').textContent = lotSize;
+            document.getElementById('floating-trades').textContent = `0/${maxTrades}`;
+            
+            showNotification(`Started trading ${selectedPair} with lot size ${lotSize} (max ${maxTrades} trades)`);
+            
+            // Check if floating mode is enabled
+            if (document.getElementById('floating-toggle').checked) {
+                document.getElementById('floating-window').style.display = 'block';
+                floatingWindowVisible = true;
+            }
+            
+            // Simulate trading updates
+            simulateTrading();
+        }
+
+        function stopTrading() {
+            isTrading = false;
+            showNotification('Trading stopped');
+            
+            if (floatingWindowVisible) {
+                document.getElementById('floating-window').style.display = 'none';
+                document.getElementById('floating-toggle').checked = false;
+            }
+        }
+
+        function closeFloatingWindow() {
+            document.getElementById('floating-window').style.display = 'none';
+            document.getElementById('floating-toggle').checked = false;
+            floatingWindowVisible = false;
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Simulate trading activity
+        function simulateTrading() {
+            if (!isTrading) return;
+            
+            // Update profit with random value
+            const currentProfit = parseFloat(document.getElementById('floating-profit').textContent);
+            const randomChange = (Math.random() * 0.3) - 0.15;
+            const newProfit = currentProfit + randomChange;
+            document.getElementById('floating-profit').textContent = `${newProfit >= 0 ? '+' : ''}${newProfit.toFixed(2)}%`;
+            
+            // Update number of trades (respecting the maximum)
+            if (Math.random() > 0.7) {
+                const tradeChange = Math.random() > 0.5 ? 1 : -1;
+                const newTrades = Math.max(0, Math.min(maxTrades, openTrades + tradeChange));
+                openTrades = newTrades;
+                document.getElementById('floating-trades').textContent = `${openTrades}/${maxTrades}`;
+            }
+            
+            // Continue simulation
+            setTimeout(simulateTrading, 2000);
+        }
+
+        // Initialize the floating toggle
+        document.getElementById('floating-toggle').addEventListener('change', function() {
+            if (this.checked && isTrading) {
+                document.getElementById('floating-window').style.display = 'block';
+                floatingWindowVisible = true;
+            } else if (!this.checked) {
+                document.getElementById('floating-window').style.display = 'none';
+                floatingWindowVisible = false;
+            }
+        });
+    </script>
+</body>
+</html>
